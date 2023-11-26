@@ -1,0 +1,121 @@
+kHEM BHATTRAI
+
+CIS-310
+
+SQLA-4
+
+
+
+
+Complete below questions based on the STAYWELL DB. Submit the SQL used. Comment when appropriate.
+
+--1. For every property, list the management office number, address, monthly rent, owner number, owner’s first name, and owner’s last name.
+
+SELECT OFFICE_NUM, PROPERTY.ADDRESS, MONTHLY_RENT, PROPERTY.OWNER_NUM, OWNER.FIRST_NAME, OWNER.LAST_NAME
+FROM PROPERTY INNER JOIN OWNER ON PROPERTY.OWNER_NUM = OWNER.OWNER_NUM;
+
+
+--2. For every completed or open service request, list the property ID, description, and status.
+
+SELECT PROPERTY_ID, DESCRIPTION, STATUS
+FROM SERVICE_REQUEST
+
+
+--3. For every service request for furniture replacement, 
+--list the property ID, management office number, address, estimated hours, spent hours, owner number, and owner’s last name.
+
+SELECT SR.PROPERTY_ID, PROPERTY.OFFICE_NUM, PROPERTY.ADDRESS, SR.EST_HOURS, SR.SPENT_HOURS, PROPERTY.OWNER_NUM, OWNER.LAST_NAME
+FROM SERVICE_REQUEST SR INNER JOIN PROPERTY ON PROPERTY.PROPERTY_ID = SERVICE_REQUEST.PROPERTY_ID INNER JOIN OWNER ON OWNER.OWNER_ID = PROPERTY.OWNER_ID
+WHERE SR.CATEGORY_NUM =(SELECT CATEGORY_NUM 
+                    FROM SERVICE_CATEGORY 
+                    WHERE CATEGORY_DESCRIPTION = 'FURNITURE';
+
+--4. List the first and last names of all owners who own a two-bedroom property.
+-- Use the IN operator in your query.
+
+SELECT FIRST_NAME, LAST_NAME
+FROM OWNER INNER JOIN PROPERTY ON OWNER_ID
+WHERE OWNER_NUM in (SELECT OWNER_NUM 
+                FROM PROPERTY 
+                WHERE BDRMS = '2');
+
+--5. Repeat Exercise 4, but this time use the EXISTS operator in your query.
+
+SELECT FIRST_NAME, LAST_NAME
+FROM OWNER INNER JOIN PROPERTY ON OWNER_ID
+WHERE OWNER_NUM in (SELECT OWNER_NUM 
+                FROM PROPERTY 
+                WHERE BDRMS = '2');
+
+--6. List the property IDs of any pair of properties that have the same number of bedrooms. 
+--For example, one pair would be property ID 2 and property ID 6, because they both have four bedrooms. 
+--The first property ID listed should be the major sort key and the second property ID should be the minor sort key.
+
+SELECT P1.PROPERTY_ID, P2.PROPERTY_ID
+FROM PROPERTY AS P1 INNER JOIN PROPERTY AS P2 ON P1.BDRMS = P2.BDRMS
+ORDER BY P1.PROPERTY_ID, P2.PROPERTY_ID;
+
+
+--7. List the square footage, owner number, owner last name, and owner first name for each property managed by the Columbia City office.
+
+SELECT PROPERTY.SQR_FT, .OWNER_NUM, OWNER.LAST_NAME, OWNER.FIRST_NAME
+FROM PROPERTY INNER JOIN OWNER ON OWNER.OWNER_NUM = PROPERTY.OWNER_NUM
+WHERE PROPERTY.OFFICE_NUM = '1';
+
+
+--8. Repeat Exercise 7, but this time include only those properties with three bedrooms.
+
+SELECT PROPERTY.SQR_FT, .OWNER_NUM, OWNER.LAST_NAME, OWNER.FIRST_NAME
+FROM PROPERTY INNER JOIN OWNER ON OWNER.OWNER_NUM = PROPERTY.OWNER_NUM
+WHERE PROPERTY.OFFICE_NUM = '1' AND PROPERTY.BDRMS = '3';
+
+--9. List the office number, address, and monthly rent for properties whose owners live in Washington state or own two-bedroom properties.
+
+SELECT OFFICE_NUM, ADDRESS, MONTHLY_RENT
+FROM PROPERTY
+WHERE OWNER_NUM IN (SELECT OWNER_NUM 
+                FROM OWNER 
+                WHERE STATE = 'WA') OR BDRMS=2;
+
+--10. List the office number, address, and monthly rent for properties whose owners live in Washington state and own a two-bedroom property.
+
+SELECT OFFICE_NUM, ADDRESS, MONTHLY_RENT 
+FROM PROPERTY 
+WHERE OWNER_NUM IN (SELECT OWNER_NUM 
+                FROM OWNER 
+                WHERE STATE = 'WA') AND BDRMS=2;
+
+--11. List the office number, address, and monthly rent for properties whose owners live in Washington state but do not own two-bedroom properties.
+
+SELECT OFFICE_NUM, ADDRESS, MONTHLY_RENT 
+FROM PROPERTY 
+WHERE OWNER_NUM IN (SELECT OWNER_NUM 
+                FROM OWNER 
+                WHERE STATE = 'WA') AND BDRMS != 2;
+
+--12. Find the service ID and property ID for each service request whose estimated hours are greater than the number of estimated hours of at least one service request on which the category number is 5.
+
+SELECT SERVICE_ID, PROPERTY_ID 
+FROM SERVICE_REQUEST, PROPERTY_ID 
+WHERE EST_HOURS > (SELECT MIN(EST_HOURS) 
+                FROM SERVICE_REQUEST 
+                WHERE CATEGORY_NUMBER = '5');
+
+--13. Find the service ID and property ID for each service request whose estimated hours are greater than the number of estimated hours on every service request on which the category number is 5.
+
+SELECT SERVICE_ID, PROPERTY_ID 
+FROM SERVICE_REQUEST, PROPERTY_ID 
+WHERE EST_HOURS > (SELECT MAX(EST_HOURS) 
+                FROM SERVICE_REQUEST 
+                WHERE CATEGORY_NUMBER = '5');
+
+--14. List the address, square footage, owner number, service ID, number of estimated hours, and number of spent hours for each service request on which the category number is 4.
+
+SELECT PROPERTY.ADDRESS, PROPERTY.SQR_FT, PROPERTY.OWNER_NUM, SERVICE_REQUEST.SERVICE_ID, SERVICE_REQUEST.EST_HOURS, SERVICE_REQUEST.SPENT_HOURS
+FROM SERVICE_REQUEST INNER JOIN PROPERTY ON PROPERTY.PROPERTY_ID = SERVICE_REQUEST.PROPERTY_ID
+WHERE SERVICE_REQUEST.CATEGORY_NUMBER='4';
+
+--15. Repeat Exercise 14, but this time be sure each property is included regardless of whether the property currently has any service requests for category 4.
+
+SELECT ADDRESS, SQR_FT, PROPERTY.OWNER_NUM, SERVICE_ID, EST_HOURS, SPENT_HOURS
+FROM SERVICE_REQUEST INNER JOIN PROPERTY ON SERVICE_REQUEST.PROPERTY_ID = PROPERTY.PROPERTY_ID;
